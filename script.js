@@ -375,7 +375,7 @@ class ScrollAnimations {
         
         // Observe cards and sections
         const elementsToAnimate = document.querySelectorAll(
-            '.service-card, .testimonial-card, .contact-card, .portfolio-card, .section-header'
+            '.service-card, .testimonial-card, .contact-card, .portfolio-card, .section-header, .tech-card, .tech-stack-header, .tech-stack-wrapper'
         );
         
         elementsToAnimate.forEach(el => {
@@ -588,6 +588,23 @@ class EmailCopyHandler {
     }
 }
 
+// Hero Animation Handler
+class HeroAnimation {
+    constructor() {
+        this.heroContent = document.querySelector('.hero-content');
+        this.init();
+    }
+    
+    init() {
+        if (!this.heroContent) return;
+        
+        // Add visible class after a short delay to trigger animation
+        setTimeout(() => {
+            this.heroContent.classList.add('hero-visible');
+        }, 100);
+    }
+}
+
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize LiquidEther background for hero section
@@ -595,6 +612,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize language switcher first
     const languageSwitcher = new LanguageSwitcher();
+    
+    // Initialize hero animation
+    new HeroAnimation();
     
     // Initialize portfolio video handler with language switcher
     new PortfolioVideoHandler(languageSwitcher);
