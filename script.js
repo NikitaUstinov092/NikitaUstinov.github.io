@@ -43,16 +43,16 @@ class LanguageSwitcher {
     }
     
     updateVideos() {
-        const iframes = document.querySelectorAll('.video-iframe');
+        // Update video URLs only if they are already loaded
+        const iframes = document.querySelectorAll('.video-iframe.loaded');
         iframes.forEach(iframe => {
-            // Only update if video is already loaded
-            if (iframe.src) {
-                const dataSrc = this.currentLang === 'ru' 
-                    ? iframe.getAttribute('data-src-ru')
-                    : iframe.getAttribute('data-src-en');
-                if (dataSrc) {
-                    iframe.src = dataSrc;
-                }
+            const dataSrc = this.currentLang === 'ru' 
+                ? iframe.getAttribute('data-src-ru')
+                : iframe.getAttribute('data-src-en');
+            if (dataSrc) {
+                const url = new URL(dataSrc);
+                url.searchParams.set('autoplay', '1');
+                iframe.src = url.toString();
             }
         });
     }
@@ -70,42 +70,51 @@ class PortfolioVideoHandler {
     }
     
     init() {
-        const playButtons = document.querySelectorAll('.play-button');
+        // Setup click handlers for video thumbnails
+        this.setupClickHandlers();
         
-        playButtons.forEach(button => {
-            button.addEventListener('click', (e) => {
-                const card = button.closest('.portfolio-card');
-                const thumbnail = card.querySelector('.video-thumbnail');
-                const iframe = card.querySelector('.video-iframe');
+        // Update videos when language changes
+        if (this.languageSwitcher) {
+            const originalUpdateVideos = this.languageSwitcher.updateVideos.bind(this.languageSwitcher);
+            this.languageSwitcher.updateVideos = () => {
+                originalUpdateVideos();
+                // Videos will be reloaded on next click if needed
+            };
+        }
+    }
+    
+    setupClickHandlers() {
+        const thumbnails = document.querySelectorAll('.video-thumbnail');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', () => {
+                const videoContainer = thumbnail.closest('.portfolio-video');
+                const iframe = videoContainer.querySelector('.video-iframe');
                 
-                if (thumbnail && iframe) {
-                    // Get current language
-                    const currentLang = this.languageSwitcher ? this.languageSwitcher.getCurrentLang() : 'ru';
-                    
-                    // Load video src from data-src-ru or data-src-en based on language
-                    if (!iframe.src) {
-                        const dataSrc = currentLang === 'ru' 
-                            ? iframe.getAttribute('data-src-ru')
-                            : iframe.getAttribute('data-src-en');
-                        if (dataSrc) {
-                            iframe.src = dataSrc;
-                        }
-                    } else {
-                        // Update video if language changed
-                        const dataSrc = currentLang === 'ru' 
-                            ? iframe.getAttribute('data-src-ru')
-                            : iframe.getAttribute('data-src-en');
-                        if (dataSrc && iframe.src !== dataSrc) {
-                            iframe.src = dataSrc;
-                        }
-                    }
-                    
-                    // Hide thumbnail and show iframe
-                    thumbnail.style.display = 'none';
-                    iframe.style.display = 'block';
+                if (iframe && !iframe.src) {
+                    // Load video with autoplay on click
+                    this.loadVideoOnClick(iframe);
                 }
+                
+                // Hide thumbnail and show iframe
+                thumbnail.classList.add('hidden');
+                iframe.classList.add('loaded');
             });
         });
+    }
+    
+    loadVideoOnClick(iframe) {
+        const currentLang = this.languageSwitcher ? this.languageSwitcher.getCurrentLang() : 'ru';
+        const dataSrc = currentLang === 'ru' 
+            ? iframe.getAttribute('data-src-ru')
+            : iframe.getAttribute('data-src-en');
+        
+        if (dataSrc) {
+            // Load video with autoplay when user clicks
+            const url = new URL(dataSrc);
+            url.searchParams.set('autoplay', '1');
+            iframe.src = url.toString();
+        }
     }
 }
 
